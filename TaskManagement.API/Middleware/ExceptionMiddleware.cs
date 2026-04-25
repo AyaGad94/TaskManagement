@@ -22,7 +22,8 @@ public class ExceptionMiddleware
             _logger.LogError(ex, "An error occurred");
             context.Response.ContentType = "application/json";
             context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-            await context.Response.WriteAsync(JsonSerializer.Serialize(new { error = "Internal Server Error" }));
+            var response = new { error = ex.Message, detail = ex.InnerException?.Message };
+            await context.Response.WriteAsync(JsonSerializer.Serialize(response));
         }
     }
 }

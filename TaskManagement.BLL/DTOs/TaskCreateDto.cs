@@ -1,12 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using TaskManagement.DAL.Enums;
 
-namespace TaskManagement.DAL.Entities
+
+namespace TaskManagement.BLL.DTOs
 {
-    public class TaskItem
+    public class TaskCreateDto
     {
-        public int Id { get; set; }
-        
         [Required]
         [MaxLength(100)]
         public string Title { get; set; } = string.Empty;
@@ -15,9 +14,9 @@ namespace TaskManagement.DAL.Entities
         public string Description { get; set; } = string.Empty;
 
         [Required]
+        [EnumDataType(typeof(UserTaskStatus))]
         public UserTaskStatus Status { get; set; } = UserTaskStatus.Pending;
         [Required]
         public DateTime DueDate { get; set; }
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }
