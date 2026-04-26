@@ -12,7 +12,11 @@ public class TasksController : ControllerBase
     public TasksController(ITaskService service) => _service = service;
 
     [HttpGet]
-    public async Task<IActionResult> GetAll() => Ok(await _service.GetAllTasks());
+    public async Task<IActionResult> GetAll([FromQuery] TaskFilterOptions filterOptions)
+    {
+        var response = await _service.GetAllTasks(filterOptions);
+        return Ok(response);
+    }
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)

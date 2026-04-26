@@ -5,6 +5,8 @@ using TaskManagement.DAL.Interfaces;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
+using TaskManagement.DAL.Extensions;
+
 namespace TaskManagement.BLL.Services
 {
     public class TaskService : ITaskService
@@ -16,13 +18,41 @@ namespace TaskManagement.BLL.Services
             _repository = repository;
             _mapper = mapper;
         }
-        public async Task<IEnumerable<TaskDto>> GetAllTasks()
+     
+
+        public async Task<PagedResponse<TaskDto>> GetAllTasks(TaskFilterOptions filterOptions)
         {
-           
-            return await _repository.GetQueryable()
+            var taskQueryable = _repository.GetQueryable().AsNoTracking();
+
+            if (filterOptions.StatusFilter.HasValue)
+            {
+                taskQueryable = taskQueryable.Where(task => task.Status == filterOptions.StatusFilter.Value);
+            }
+
+            if (filterOptions.DueDateFilter.HasValue)
+            {
+                var date = filterOptions.DueDateFilter.Value.Date;
+
+                if (date > DateTime.UtcNow.Date) throw new ArgumentException("Filtering by a future date is not allowed.");
+
+                taskQueryable = taskQueryable.Where(task => task.DueDate >= date && task.DueDate < date.AddDays(1));
+            }
+
+            var totalTasksCount = await taskQueryable.CountAsync();
+
+            const int fixedPageNumber = 1;
+            const int strictLimitSize = 10;
+
+            var tasksList = await taskQueryable
+                .OrderByDescending(task => task.CreatedAt)
+                .PageBy(fixedPageNumber, strictLimitSize)
                 .ProjectTo<TaskDto>(_mapper.ConfigurationProvider)
                 .ToListAsync();
+
+            return new PagedResponse<TaskDto>(tasksList, totalTasksCount, fixedPageNumber, strictLimitSize);
         }
+
+
         public async Task<TaskDto?> GetTaskById(int id)
         {
             return await _repository.GetQueryable()
