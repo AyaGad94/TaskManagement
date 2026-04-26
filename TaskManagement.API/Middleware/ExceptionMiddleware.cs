@@ -14,14 +14,22 @@ public class ExceptionMiddleware
         _logger = logger;
     }
 
+   
     public async Task InvokeAsync(HttpContext context)
     {
-        try { await _next(context); }
+        try
+        {
+            await _next(context);
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "An error occurred");
             context.Response.ContentType = "application/json";
-            context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+
+            context.Response.StatusCode = ex is ArgumentException
+                ? (int)HttpStatusCode.BadRequest
+                : (int)HttpStatusCode.InternalServerError;
+
             var response = new { error = ex.Message, detail = ex.InnerException?.Message };
             await context.Response.WriteAsync(JsonSerializer.Serialize(response));
         }
