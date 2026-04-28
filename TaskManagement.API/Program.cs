@@ -54,12 +54,7 @@ app.UseSwaggerUI(c => {
     // This allows Swagger to load at http://localhost:8080/
     c.RoutePrefix = "swagger";
 });
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
 
-//app.UseHttpsRedirection();
+
 app.MapControllers();
 app.Run();
