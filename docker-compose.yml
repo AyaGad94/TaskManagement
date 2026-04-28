@@ -1,0 +1,79 @@
+
+services:
+  # SQL Server Database Service
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: taskmanagement-db
+    environment:
+      # SQL Server admin password (must meet complexity: min 8 chars, uppercase, lowercase, digit, symbol)
+      SA_PASSWORD: "P@ssw0rd123!"
+      # Accept SQL Server EULA
+      ACCEPT_EULA: "Y"
+      # Use Express edition (free, 10GB limit)
+      MSSQL_PID: "Express"
+      # Initialize database on startup
+      MSSQL_SA_PASSWORD: "P@ssw0rd123!"
+    ports:
+      # Map host:container - accessible from host machine at localhost:1433
+      - "1433:1433"
+    volumes:
+      # Persist database data even if container is deleted
+      - mssql-data:/var/opt/mssql
+    healthcheck:
+      # Verify SQL Server is healthy and accepting connections
+      test: >
+        /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "$${SA_PASSWORD}" 
+        -Q "SELECT 1" || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+    networks:
+      - taskmanagement-network
+    # Restart policy for production
+    restart: unless-stopped
+
+  # ASP.NET Core API Service
+  api:
+    # Build the image from Dockerfile in the current context
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: taskmanagementapi:latest
+    container_name: taskmanagement-api
+    
+    environment:
+      # Production environment configuration
+      ASPNETCORE_ENVIRONMENT: "Development"
+      # Connection string using service name 'db' as hostname
+      # Format: Server=<service-name>,<port>;Database=<db-name>;User Id=sa;Password=<password>;TrustServerCertificate=True;
+      ConnectionStrings__DefaultConnection: "Server=db,1433;Database=TaskManagementDb;User Id=sa;Password=P@ssw0rd123!;Encrypt=False;TrustServerCertificate=True;"
+      # Logging configuration
+      Logging__LogLevel__Default: "Information"
+      Logging__LogLevel__Microsoft: "Warning"
+    ports:
+      # Map host:container - accessible from host at localhost:8080
+      - "8080:8080"
+    networks:
+      - taskmanagement-network
+    # Restart policy for production
+    restart: unless-stopped
+    # Optional: set resource limits
+    # deploy:
+    #   resources:
+    #     limits:
+    #       cpus: '1'
+    #       memory: 512M
+    #     reservations:
+    #       cpus: '0.5'
+    #       memory: 256M
+
+# Named volume for persistent database storage
+volumes:
+  mssql-data:
+    driver: local
+
+# Custom network for service-to-service communication
+networks:
+  taskmanagement-network:
+    driver: bridge

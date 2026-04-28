@@ -1,0 +1,72 @@
+# Docker build context ignore file
+# Prevents unnecessary files from being copied into the Docker image
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Build outputs
+bin/
+obj/
+dist/
+
+# IDEs
+.vs/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+.idea/
+*.user
+*.suo
+*.sln.iml
+
+# Package manager
+node_modules/
+package-lock.json
+yarn.lock
+
+# Temporary and cache files
+.cache/
+.tmp/
+temp/
+*.log
+*.tmp
+
+# Database files
+*.mdf
+*.ldf
+*.db
+*.sqlite
+
+# Environment files (use docker-compose or env vars instead)
+.env
+.env.local
+.env.*.local
+
+# Documentation and misc
+README.md
+LICENSE
+docs/
+*.md
+
+# Docker and container files (don't need them in image)
+Dockerfile
+docker-compose.yml
+.dockerignore
+.docker/
+
+# Test files and coverage
+tests/
+test/
+*.Tests/
+.coverage
+coverage/
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+azure-pipelines.yml
