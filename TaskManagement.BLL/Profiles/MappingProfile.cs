@@ -9,8 +9,12 @@ namespace TaskManagement.BLL.Profiles
         public MappingProfile()
         {
             CreateMap<TaskItem, TaskDto>();
-            CreateMap<TaskCreateDto, TaskItem>();
+
+            CreateMap<TaskCreateDto, TaskItem>()
+                .ForMember(dest => dest.Id, opt => opt.Ignore())
+                .ForMember(dest => dest.CreatedAt, opt => opt.Ignore());
 
         }
     }
 }
+
