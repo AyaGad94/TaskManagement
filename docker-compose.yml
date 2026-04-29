@@ -6,7 +6,7 @@ services:
     container_name: taskmanagement-db
     environment:
       # SQL Server admin password (must meet complexity: min 8 chars, uppercase, lowercase, digit, symbol)
-      SA_PASSWORD: "P@ssw0rd123!"
+      # SA_PASSWORD: "P@ssw0rd123!"
       # Accept SQL Server EULA
       ACCEPT_EULA: "Y"
       # Use Express edition (free, 10GB limit)

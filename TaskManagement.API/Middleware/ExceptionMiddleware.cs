@@ -1,5 +1,5 @@
-﻿using System.Net;
-using System.Text.Json;
+﻿using System.Text.Json;
+using TaskManagement.BLL.Exceptions;
 
 namespace TaskManagement.API.Middleware;
 
@@ -14,23 +14,26 @@ public class ExceptionMiddleware
         _logger = logger;
     }
 
-   
     public async Task InvokeAsync(HttpContext context)
     {
         try
         {
             await _next(context);
         }
+        catch (BadRequestException ex)
+        {
+            _logger.LogWarning(ex, "Bad request: {Message}", ex.Message);
+            context.Response.StatusCode = StatusCodes.Status400BadRequest;
+            context.Response.ContentType = "application/json";
+            var response = new { error = ex.Message, detail = ex.InnerException?.Message };
+            await context.Response.WriteAsync(JsonSerializer.Serialize(response));
+        }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An error occurred");
+            _logger.LogError(ex, "Unhandled exception occurred");
+            context.Response.StatusCode = StatusCodes.Status500InternalServerError;
             context.Response.ContentType = "application/json";
-
-            context.Response.StatusCode = ex is ArgumentException
-                ? (int)HttpStatusCode.BadRequest
-                : (int)HttpStatusCode.InternalServerError;
-
-            var response = new { error = ex.Message, detail = ex.InnerException?.Message };
+            var response = new { error = "An unexpected error occurred.", detail = ex.InnerException?.Message };
             await context.Response.WriteAsync(JsonSerializer.Serialize(response));
         }
     }
